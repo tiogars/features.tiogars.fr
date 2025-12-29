@@ -4,7 +4,7 @@ export interface GitHubRepoInfo {
   url: string;
 }
 
-const ALLOWED_GITHUB_HOSTNAMES = ['github.com', 'www.github.com'] as const;
+const ALLOWED_GITHUB_HOSTNAMES = ['github.com', 'www.github.com'];
 
 // Valid GitHub username/repository name pattern
 // Alphanumeric, hyphens, underscores, and periods are allowed
@@ -48,7 +48,7 @@ export function parseGitHubUrl(url: string): GitHubRepoInfo | null {
     }
     
     // Check if it's a GitHub URL
-    if (!ALLOWED_GITHUB_HOSTNAMES.includes(urlObj.hostname as typeof ALLOWED_GITHUB_HOSTNAMES[number])) {
+    if (!ALLOWED_GITHUB_HOSTNAMES.includes(urlObj.hostname)) {
       return null;
     }
     

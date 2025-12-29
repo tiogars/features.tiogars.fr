@@ -64,8 +64,10 @@ function App() {
       const sharedUrl = urlParams.get('url');
       const sharedTitle = urlParams.get('title');
       
-      // Sanitize title to prevent XSS
-      const sanitizedTitle = sharedTitle ? sharedTitle.replace(/[<>]/g, '').substring(0, 100) : '';
+      // Sanitize title to prevent XSS - remove potentially dangerous characters
+      const sanitizedTitle = sharedTitle 
+        ? sharedTitle.replace(/[<>"'`&]/g, '').substring(0, 100) 
+        : '';
       
       if (sharedUrl) {
         // Parse the GitHub URL
