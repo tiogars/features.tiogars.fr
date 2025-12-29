@@ -5,6 +5,7 @@ export interface FeatureListProps {
   tags: Array<{ id: string; name: string; color: string }>;
   onEdit: (feature: Feature) => void;
   onDelete: (id: string) => void;
+  onCreateIssue: (feature: Feature) => void;
   selectedTags: string[];
   onTagFilterChange: (tags: string[]) => void;
 }

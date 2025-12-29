@@ -6,12 +6,14 @@ import {
   Chip,
   IconButton,
   Box,
+  Tooltip,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import GitHubIcon from '@mui/icons-material/GitHub';
 import type { FeatureCardProps } from './FeatureCard.types';
 
-export default function FeatureCard({ feature, tags, onEdit, onDelete }: FeatureCardProps) {
+export default function FeatureCard({ feature, tags, onEdit, onDelete, onCreateIssue }: FeatureCardProps) {
   const getTagColor = (tagName: string) => {
     const tag = tags.find(t => t.name === tagName);
     return tag?.color || '#808080';
@@ -52,6 +54,16 @@ export default function FeatureCard({ feature, tags, onEdit, onDelete }: Feature
         </Typography>
       </CardContent>
       <CardActions sx={{ justifyContent: 'flex-end' }}>
+        <Tooltip title="Create GitHub Issue">
+          <IconButton
+            size="small"
+            color="primary"
+            onClick={() => onCreateIssue(feature)}
+            aria-label="create issue"
+          >
+            <GitHubIcon />
+          </IconButton>
+        </Tooltip>
         <IconButton
           size="small"
           color="primary"
