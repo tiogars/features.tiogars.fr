@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import type { Repository } from '../types/feature.types';
 import {
   getAllRepositories,
+  getRepository,
   saveRepository,
   deleteRepository,
 } from '../utils/db';
@@ -39,8 +40,7 @@ export function useRepositories() {
   }, [loadRepositories]);
 
   const updateRepository = useCallback(async (id: string, updates: Partial<Omit<Repository, 'id' | 'createdAt'>>) => {
-    const existingRepositories = await getAllRepositories();
-    const existing = existingRepositories.find(r => r.id === id);
+    const existing = await getRepository(id);
     if (existing) {
       const updated: Repository = {
         ...existing,

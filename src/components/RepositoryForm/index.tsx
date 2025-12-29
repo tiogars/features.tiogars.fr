@@ -94,8 +94,8 @@ export default function RepositoryForm({
             rules={{ 
               required: 'URL is required',
               pattern: {
-                value: /^https?:\/\/.+/,
-                message: 'Please enter a valid URL',
+                value: /^https:\/\/github\.com\/[^/]+\/[^/]+\/?$/,
+                message: 'Please enter a valid GitHub repository URL (e.g., https://github.com/owner/repo)',
               }
             }}
             render={({ field }) => (
