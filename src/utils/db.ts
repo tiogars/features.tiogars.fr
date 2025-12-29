@@ -1,5 +1,5 @@
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
-import type { Feature, Tag } from '../types/feature.types';
+import type { Feature, Tag, Repository } from '../types/feature.types';
 
 interface FeaturesDB extends DBSchema {
   features: {
@@ -11,10 +11,15 @@ interface FeaturesDB extends DBSchema {
     key: string;
     value: Tag;
   };
+  repositories: {
+    key: string;
+    value: Repository;
+    indexes: { 'by-name': string };
+  };
 }
 
 const DB_NAME = 'features-db';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 let dbInstance: IDBPDatabase<FeaturesDB> | null = null;
 
@@ -24,7 +29,7 @@ export async function getDB(): Promise<IDBPDatabase<FeaturesDB>> {
   }
 
   dbInstance = await openDB<FeaturesDB>(DB_NAME, DB_VERSION, {
-    upgrade(db) {
+    upgrade(db, oldVersion) {
       // Create features store
       if (!db.objectStoreNames.contains('features')) {
         const featuresStore = db.createObjectStore('features', { keyPath: 'id' });
@@ -34,6 +39,12 @@ export async function getDB(): Promise<IDBPDatabase<FeaturesDB>> {
       // Create tags store
       if (!db.objectStoreNames.contains('tags')) {
         db.createObjectStore('tags', { keyPath: 'id' });
+      }
+
+      // Create repositories store (added in version 2)
+      if (oldVersion < 2 && !db.objectStoreNames.contains('repositories')) {
+        const repositoriesStore = db.createObjectStore('repositories', { keyPath: 'id' });
+        repositoriesStore.createIndex('by-name', 'name');
       }
     },
   });
@@ -82,4 +93,26 @@ export async function saveTag(tag: Tag): Promise<void> {
 export async function deleteTag(id: string): Promise<void> {
   const db = await getDB();
   await db.delete('tags', id);
+}
+
+// Repositories operations
+export async function getAllRepositories(): Promise<Repository[]> {
+  const db = await getDB();
+  const repositories = await db.getAllFromIndex('repositories', 'by-name');
+  return repositories;
+}
+
+export async function getRepository(id: string): Promise<Repository | undefined> {
+  const db = await getDB();
+  return db.get('repositories', id);
+}
+
+export async function saveRepository(repository: Repository): Promise<void> {
+  const db = await getDB();
+  await db.put('repositories', repository);
+}
+
+export async function deleteRepository(id: string): Promise<void> {
+  const db = await getDB();
+  await db.delete('repositories', id);
 }

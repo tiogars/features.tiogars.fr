@@ -7,6 +7,7 @@ export default function FeatureList({
   tags,
   onEdit,
   onDelete,
+  onCreateIssue,
   selectedTags,
   onTagFilterChange,
 }: FeatureListProps) {
@@ -70,6 +71,7 @@ export default function FeatureList({
                 tags={tags}
                 onEdit={onEdit}
                 onDelete={onDelete}
+                onCreateIssue={onCreateIssue}
               />
             </Box>
           ))}

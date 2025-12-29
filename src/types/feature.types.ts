@@ -12,3 +12,12 @@ export interface Tag {
   name: string;
   color: string;
 }
+
+export interface Repository {
+  id: string;
+  name: string;
+  owner: string;
+  url: string;
+  createdAt: number;
+  updatedAt: number;
+}
