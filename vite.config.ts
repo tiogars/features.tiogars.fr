@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
 const BASE_PATH = '/features.tiogars.fr/';
+const SHARE_TARGET_PATH = 'share';
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -29,7 +30,7 @@ export default defineConfig({
           }
         ],
         share_target: {
-          action: `${BASE_PATH}share`,
+          action: `${BASE_PATH}${SHARE_TARGET_PATH}`,
           method: 'GET',
           enctype: 'application/x-www-form-urlencoded',
           params: {

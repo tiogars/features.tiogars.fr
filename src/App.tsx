@@ -64,6 +64,9 @@ function App() {
       const sharedUrl = urlParams.get('url');
       const sharedTitle = urlParams.get('title');
       
+      // Sanitize title to prevent XSS
+      const sanitizedTitle = sharedTitle ? sharedTitle.replace(/[<>]/g, '').substring(0, 100) : '';
+      
       if (sharedUrl) {
         // Parse the GitHub URL
         const repoInfo = parseGitHubUrl(sharedUrl);
@@ -103,7 +106,7 @@ function App() {
           }
         } else {
           // Not a GitHub URL or invalid format
-          setSnackbarMessage(sharedTitle ? `Received: ${sharedTitle}` : 'Invalid GitHub URL format');
+          setSnackbarMessage(sanitizedTitle ? `Received: ${sanitizedTitle}` : 'Invalid GitHub URL format');
           setSnackbarSeverity('error');
           setSnackbarOpen(true);
         }

@@ -4,6 +4,23 @@ export interface GitHubRepoInfo {
   url: string;
 }
 
+const ALLOWED_GITHUB_HOSTNAMES = ['github.com', 'www.github.com'] as const;
+
+// Valid GitHub username/repository name pattern
+// Alphanumeric, hyphens, underscores, and periods are allowed
+// Cannot start with a hyphen
+const GITHUB_NAME_PATTERN = /^[a-zA-Z0-9][\w.-]*$/;
+
+/**
+ * Validate GitHub username or repository name
+ */
+function isValidGitHubName(name: string): boolean {
+  if (!name || name.length === 0 || name.length > 100) {
+    return false;
+  }
+  return GITHUB_NAME_PATTERN.test(name);
+}
+
 /**
  * Parse a GitHub repository URL and extract owner and repo name
  * Supports various GitHub URL formats:
@@ -31,7 +48,7 @@ export function parseGitHubUrl(url: string): GitHubRepoInfo | null {
     }
     
     // Check if it's a GitHub URL
-    if (urlObj.hostname !== 'github.com' && urlObj.hostname !== 'www.github.com') {
+    if (!ALLOWED_GITHUB_HOSTNAMES.includes(urlObj.hostname as typeof ALLOWED_GITHUB_HOSTNAMES[number])) {
       return null;
     }
     
@@ -49,6 +66,11 @@ export function parseGitHubUrl(url: string): GitHubRepoInfo | null {
     // Remove .git extension if present
     if (name.endsWith('.git')) {
       name = name.slice(0, -4);
+    }
+    
+    // Validate owner and repository names
+    if (!isValidGitHubName(owner) || !isValidGitHubName(name)) {
+      return null;
     }
     
     // Construct clean URL
