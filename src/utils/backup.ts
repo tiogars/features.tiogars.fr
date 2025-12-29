@@ -14,7 +14,10 @@ export interface BackupData {
 // Get the last backup timestamp from localStorage
 export function getLastBackupTimestamp(): number | null {
   const timestamp = localStorage.getItem(LAST_BACKUP_KEY);
-  return timestamp ? parseInt(timestamp, 10) : null;
+  if (!timestamp) return null;
+  
+  const parsed = parseInt(timestamp, 10);
+  return isNaN(parsed) ? null : parsed;
 }
 
 // Save the backup timestamp to localStorage
@@ -283,6 +286,12 @@ function parseCSVBackup(content: string): BackupData {
 function parseXMLBackup(content: string): BackupData {
   const parser = new DOMParser();
   const xmlDoc = parser.parseFromString(content, 'text/xml');
+  
+  // Check for XML parsing errors
+  const parserError = xmlDoc.querySelector('parsererror');
+  if (parserError) {
+    throw new Error('Invalid XML format: ' + parserError.textContent);
+  }
   
   const features: Feature[] = [];
   const tags: Tag[] = [];

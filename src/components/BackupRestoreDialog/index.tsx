@@ -90,10 +90,11 @@ export default function BackupRestoreDialog({ open, onClose }: BackupRestoreDial
       const content = await file.text();
       
       // Determine format from file extension
-      const fileFormat = file.name.split('.').pop()?.toLowerCase() as BackupFormat;
-      if (!['json', 'xml', 'csv'].includes(fileFormat)) {
+      const extension = file.name.split('.').pop()?.toLowerCase();
+      if (!extension || !['json', 'xml', 'csv'].includes(extension)) {
         throw new Error('Invalid file format. Please use .json, .xml, or .csv file.');
       }
+      const fileFormat = extension as BackupFormat;
 
       await importBackup(content, fileFormat);
       setSnackbarMessage('Data restored successfully! Please refresh the page to see the changes.');
