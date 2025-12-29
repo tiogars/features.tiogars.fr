@@ -23,6 +23,7 @@ import CreateIssueDialog from './components/CreateIssueDialog';
 import SpeedDialActions from './components/SpeedDialActions';
 import Footer from './components/Footer';
 import ConfirmDialog from './components/ConfirmDialog';
+import BackupRestoreDialog from './components/BackupRestoreDialog';
 import type { Feature, Repository } from './types/feature.types';
 import type { FeatureFormData } from './components/FeatureForm/FeatureForm.types';
 import type { RepositoryFormData } from './components/RepositoryForm/RepositoryForm.types';
@@ -45,6 +46,7 @@ function App() {
   const [createIssueDialogOpen, setCreateIssueDialogOpen] = useState(false);
   const [featureForIssue, setFeatureForIssue] = useState<Feature | null>(null);
   const [currentTab, setCurrentTab] = useState(0);
+  const [backupRestoreDialogOpen, setBackupRestoreDialogOpen] = useState(false);
 
   const availableTags = useMemo(() => tags.map(t => t.name), [tags]);
 
@@ -182,6 +184,14 @@ function App() {
     setCurrentTab(newValue);
   }, []);
 
+  const handleOpenBackupRestoreDialog = useCallback(() => {
+    setBackupRestoreDialogOpen(true);
+  }, []);
+
+  const handleCloseBackupRestoreDialog = useCallback(() => {
+    setBackupRestoreDialogOpen(false);
+  }, []);
+
   if (featuresLoading || repositoriesLoading) {
     return (
       <ThemeProvider theme={theme}>
@@ -248,7 +258,7 @@ function App() {
 
         <Footer repositoryUrl={REPOSITORY_URL} />
 
-        {currentTab === 0 && <SpeedDialActions onAddFeature={handleOpenForm} />}
+        {currentTab === 0 && <SpeedDialActions onAddFeature={handleOpenForm} onBackupRestore={handleOpenBackupRestoreDialog} />}
 
         <FeatureForm
           open={formOpen}
@@ -287,6 +297,11 @@ function App() {
           message="Are you sure you want to delete this repository? This action cannot be undone."
           onConfirm={handleConfirmDeleteRepository}
           onCancel={handleCancelDeleteRepository}
+        />
+
+        <BackupRestoreDialog
+          open={backupRestoreDialogOpen}
+          onClose={handleCloseBackupRestoreDialog}
         />
       </Box>
     </ThemeProvider>

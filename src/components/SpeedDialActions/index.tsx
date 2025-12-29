@@ -1,12 +1,17 @@
 import { SpeedDial, SpeedDialAction } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import CreateIcon from '@mui/icons-material/Create';
+import BackupIcon from '@mui/icons-material/Backup';
 import type { SpeedDialActionsProps } from './SpeedDialActions.types';
 
-export default function SpeedDialActions({ onAddFeature }: SpeedDialActionsProps) {
+export default function SpeedDialActions({ onAddFeature, onBackupRestore }: SpeedDialActionsProps) {
   const actions = [
     { icon: <CreateIcon />, name: 'New Feature', onClick: onAddFeature },
   ];
+
+  if (onBackupRestore) {
+    actions.push({ icon: <BackupIcon />, name: 'Backup & Restore', onClick: onBackupRestore });
+  }
 
   return (
     <SpeedDial
