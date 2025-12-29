@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import {
   ThemeProvider,
   CssBaseline,
@@ -10,6 +10,8 @@ import {
   CircularProgress,
   Tabs,
   Tab,
+  Snackbar,
+  Alert,
 } from '@mui/material';
 import { theme } from './theme/theme';
 import { useFeatures } from './hooks/useFeatures';
@@ -27,6 +29,7 @@ import BackupRestoreDialog from './components/BackupRestoreDialog';
 import type { Feature, Repository } from './types/feature.types';
 import type { FeatureFormData } from './components/FeatureForm/FeatureForm.types';
 import type { RepositoryFormData } from './components/RepositoryForm/RepositoryForm.types';
+import { parseGitHubUrl, findExistingRepository } from './utils/github';
 
 const REPOSITORY_URL = 'https://github.com/tiogars/features.tiogars.fr';
 
@@ -47,8 +50,73 @@ function App() {
   const [featureForIssue, setFeatureForIssue] = useState<Feature | null>(null);
   const [currentTab, setCurrentTab] = useState(0);
   const [backupRestoreDialogOpen, setBackupRestoreDialogOpen] = useState(false);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error' | 'info'>('success');
 
   const availableTags = useMemo(() => tags.map(t => t.name), [tags]);
+
+  // Handle shared URLs from Web Share Target API
+  useEffect(() => {
+    const handleSharedUrl = async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const sharedUrl = urlParams.get('url');
+      const sharedTitle = urlParams.get('title');
+      
+      if (sharedUrl) {
+        // Parse the GitHub URL
+        const repoInfo = parseGitHubUrl(sharedUrl);
+        
+        if (repoInfo) {
+          // Check if repository already exists
+          const exists = findExistingRepository(repositories, repoInfo.owner, repoInfo.name);
+          
+          if (!exists) {
+            // Create the repository
+            try {
+              await addRepository({
+                name: repoInfo.name,
+                owner: repoInfo.owner,
+                url: repoInfo.url,
+              });
+              
+              setSnackbarMessage(`Repository "${repoInfo.owner}/${repoInfo.name}" added successfully!`);
+              setSnackbarSeverity('success');
+              setSnackbarOpen(true);
+              
+              // Switch to repository tab to show the new repository
+              setCurrentTab(1);
+            } catch (error) {
+              console.error('Error adding repository:', error);
+              setSnackbarMessage('Failed to add repository');
+              setSnackbarSeverity('error');
+              setSnackbarOpen(true);
+            }
+          } else {
+            setSnackbarMessage(`Repository "${repoInfo.owner}/${repoInfo.name}" already exists`);
+            setSnackbarSeverity('info');
+            setSnackbarOpen(true);
+            
+            // Switch to repository tab to show existing repositories
+            setCurrentTab(1);
+          }
+        } else {
+          // Not a GitHub URL or invalid format
+          setSnackbarMessage(sharedTitle ? `Received: ${sharedTitle}` : 'Invalid GitHub URL format');
+          setSnackbarSeverity('error');
+          setSnackbarOpen(true);
+        }
+        
+        // Clean up URL parameters
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    };
+    
+    // Only run when repositories are loaded
+    if (!repositoriesLoading) {
+      handleSharedUrl();
+    }
+  }, [repositories, repositoriesLoading, addRepository]);
 
   const handleOpenForm = useCallback(() => {
     setEditingFeature(undefined);
@@ -192,6 +260,10 @@ function App() {
     setBackupRestoreDialogOpen(false);
   }, []);
 
+  const handleCloseSnackbar = useCallback(() => {
+    setSnackbarOpen(false);
+  }, []);
+
   if (featuresLoading || repositoriesLoading) {
     return (
       <ThemeProvider theme={theme}>
@@ -303,6 +375,17 @@ function App() {
           open={backupRestoreDialogOpen}
           onClose={handleCloseBackupRestoreDialog}
         />
+
+        <Snackbar
+          open={snackbarOpen}
+          autoHideDuration={6000}
+          onClose={handleCloseSnackbar}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        >
+          <Alert onClose={handleCloseSnackbar} severity={snackbarSeverity} sx={{ width: '100%' }}>
+            {snackbarMessage}
+          </Alert>
+        </Snackbar>
       </Box>
     </ThemeProvider>
   );
