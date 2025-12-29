@@ -32,6 +32,7 @@ import type { RepositoryFormData } from './components/RepositoryForm/RepositoryF
 import { parseGitHubUrl, findExistingRepository } from './utils/github';
 
 const REPOSITORY_URL = 'https://github.com/tiogars/features.tiogars.fr';
+const REPOSITORY_TAB_INDEX = 1;
 
 function App() {
   const { features, loading: featuresLoading, addFeature, updateFeature, removeFeature } = useFeatures();
@@ -85,7 +86,7 @@ function App() {
               setSnackbarOpen(true);
               
               // Switch to repository tab to show the new repository
-              setCurrentTab(1);
+              setCurrentTab(REPOSITORY_TAB_INDEX);
             } catch (error) {
               console.error('Error adding repository:', error);
               setSnackbarMessage('Failed to add repository');
@@ -98,7 +99,7 @@ function App() {
             setSnackbarOpen(true);
             
             // Switch to repository tab to show existing repositories
-            setCurrentTab(1);
+            setCurrentTab(REPOSITORY_TAB_INDEX);
           }
         } else {
           // Not a GitHub URL or invalid format
@@ -107,8 +108,10 @@ function App() {
           setSnackbarOpen(true);
         }
         
-        // Clean up URL parameters
-        window.history.replaceState({}, document.title, window.location.pathname);
+        // Clean up URL parameters while preserving hash
+        const newUrl = new URL(window.location.href);
+        newUrl.search = '';
+        window.history.replaceState({}, document.title, newUrl.pathname + newUrl.hash);
       }
     };
     

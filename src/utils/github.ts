@@ -31,7 +31,7 @@ export function parseGitHubUrl(url: string): GitHubRepoInfo | null {
     }
     
     // Check if it's a GitHub URL
-    if (!urlObj.hostname.includes('github.com')) {
+    if (urlObj.hostname !== 'github.com' && urlObj.hostname !== 'www.github.com') {
       return null;
     }
     

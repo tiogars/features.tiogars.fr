@@ -2,6 +2,8 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
+const BASE_PATH = '/features.tiogars.fr/';
+
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
@@ -16,18 +18,18 @@ export default defineConfig({
         theme_color: '#1976d2',
         background_color: '#ffffff',
         display: 'standalone',
-        start_url: '/features.tiogars.fr/',
-        scope: '/features.tiogars.fr/',
+        start_url: BASE_PATH,
+        scope: BASE_PATH,
         icons: [
           {
-            src: '/features.tiogars.fr/vite.svg',
+            src: `${BASE_PATH}vite.svg`,
             sizes: '512x512',
             type: 'image/svg+xml',
             purpose: 'any maskable'
           }
         ],
         share_target: {
-          action: '/features.tiogars.fr/share',
+          action: `${BASE_PATH}share`,
           method: 'GET',
           enctype: 'application/x-www-form-urlencoded',
           params: {
@@ -58,5 +60,5 @@ export default defineConfig({
       }
     })
   ],
-  base: '/features.tiogars.fr/',
+  base: BASE_PATH,
 })
