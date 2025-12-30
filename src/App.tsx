@@ -40,11 +40,6 @@ const ROUTES = {
   REPOSITORIES: '/repositories',
 } as const;
 
-const ROUTE_TO_TAB_INDEX = {
-  [ROUTES.FEATURES]: 0,
-  [ROUTES.REPOSITORIES]: 1,
-} as const;
-
 const TAB_INDEX_TO_ROUTE = [ROUTES.FEATURES, ROUTES.REPOSITORIES] as const;
 
 function App() {
@@ -294,9 +289,9 @@ function App() {
   // Determine current tab based on route using centralized mapping
   // Defaults to 0 (Features tab) for unknown routes
   const getTabIndex = (pathname: string): number => {
-    return pathname in ROUTE_TO_TAB_INDEX 
-      ? ROUTE_TO_TAB_INDEX[pathname as keyof typeof ROUTE_TO_TAB_INDEX]
-      : 0;
+    if (pathname === ROUTES.FEATURES) return 0;
+    if (pathname === ROUTES.REPOSITORIES) return 1;
+    return 0;
   };
   const currentTab = getTabIndex(location.pathname);
 
