@@ -12,12 +12,14 @@ import {
   Tab,
   Snackbar,
   Alert,
+  Button,
 } from '@mui/material';
 import { theme } from './theme/theme';
 import { useFeatures } from './hooks/useFeatures';
 import { useTags } from './hooks/useTags';
 import { useRepositories } from './hooks/useRepositories';
 import { useApps } from './hooks/useApps';
+import { useDataChangeNotification } from './hooks/useDataChangeNotification';
 import FeatureList from './components/FeatureList';
 import FeatureForm from './components/FeatureForm';
 import RepositoryList from './components/RepositoryList';
@@ -37,6 +39,7 @@ import type { FeatureFormData } from './components/FeatureForm/FeatureForm.types
 import type { RepositoryFormData } from './components/RepositoryForm/RepositoryForm.types';
 import type { AppFormData } from './components/AppForm/AppForm.types';
 import { parseGitHubUrl, findExistingRepository } from './utils/github';
+import { fastBackupToJSON } from './utils/backup';
 
 const REPOSITORY_URL = 'https://github.com/tiogars/features.tiogars.fr';
 
@@ -76,6 +79,10 @@ function App() {
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error' | 'info'>('success');
+
+  // Data change notification for fast backup
+  const { showNotification: showBackupNotification, dismissNotification: dismissBackupNotification } = 
+    useDataChangeNotification(features.length, repositories.length, apps.length);
 
   const availableTags = useMemo(() => tags.map(t => t.name), [tags]);
 
@@ -349,6 +356,20 @@ function App() {
     setSnackbarOpen(false);
   }, []);
 
+  const handleFastBackup = useCallback(async () => {
+    try {
+      await fastBackupToJSON();
+      dismissBackupNotification();
+      setSnackbarMessage('Backup downloaded successfully!');
+      setSnackbarSeverity('success');
+      setSnackbarOpen(true);
+    } catch {
+      setSnackbarMessage('Backup failed. Please try again.');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+    }
+  }, [dismissBackupNotification]);
+
   // Determine current tab based on route using centralized mapping
   // Defaults to 0 (Dashboard tab) for unknown routes
   const getTabIndex = (pathname: string): number => {
@@ -522,6 +543,7 @@ function App() {
           onClose={handleCloseBackupRestoreDialog}
         />
 
+        {/* Regular snackbar for general messages */}
         <Snackbar
           open={snackbarOpen}
           autoHideDuration={6000}
@@ -530,6 +552,27 @@ function App() {
         >
           <Alert onClose={handleCloseSnackbar} severity={snackbarSeverity} sx={{ width: '100%' }}>
             {snackbarMessage}
+          </Alert>
+        </Snackbar>
+
+        {/* Backup notification with action button */}
+        <Snackbar
+          open={showBackupNotification}
+          autoHideDuration={10000}
+          onClose={dismissBackupNotification}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        >
+          <Alert 
+            onClose={dismissBackupNotification} 
+            severity="info" 
+            sx={{ width: '100%' }}
+            action={
+              <Button color="inherit" size="small" onClick={handleFastBackup}>
+                Backup
+              </Button>
+            }
+          >
+            New data has been added. Create a backup?
           </Alert>
         </Snackbar>
       </Box>
