@@ -225,6 +225,13 @@ export function downloadBackup(content: string, format: 'json' | 'xml' | 'csv'):
   saveBackupTimestamp();
 }
 
+// Fast backup: exports and downloads data in JSON format
+export async function fastBackupToJSON(): Promise<void> {
+  const data = await exportData();
+  const content = toJSON(data);
+  downloadBackup(content, 'json');
+}
+
 // Parse JSON backup file
 function parseJSONBackup(content: string): BackupData {
   return JSON.parse(content);
