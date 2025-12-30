@@ -1,4 +1,7 @@
 /* eslint-disable react-hooks/set-state-in-effect */
+// Note: setState in useEffect is required here for form reset synchronization.
+// The links state must be reset along with react-hook-form's reset() to keep
+// the link list UI in sync with the form data when editing/creating apps.
 import { useEffect, useState } from 'react';
 import {
   Dialog,
@@ -106,7 +109,7 @@ const AppForm = ({
       ));
     } else {
       const newLink: Link = {
-        id: `link-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        id: `link-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
         ...data,
       };
       setLinks([...links, newLink]);

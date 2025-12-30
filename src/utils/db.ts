@@ -63,12 +63,19 @@ export async function getDB(): Promise<IDBPDatabase<FeaturesDB>> {
         const appsStore = transaction.objectStore('apps');
         appsStore.openCursor().then(function updateApp(cursor): Promise<void> | undefined {
           if (!cursor) return;
-          const app = cursor.value;
-          if (!app.links) {
-            app.links = [];
-            cursor.update(app);
+          try {
+            const app = cursor.value;
+            if (!app.links) {
+              app.links = [];
+              cursor.update(app);
+            }
+            return cursor.continue().then(updateApp);
+          } catch (error) {
+            console.error('Error migrating app:', error);
+            return cursor.continue().then(updateApp);
           }
-          return cursor.continue().then(updateApp);
+        }).catch(error => {
+          console.error('Error during app migration:', error);
         });
       }
     },
