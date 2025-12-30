@@ -1,4 +1,4 @@
-import type { Feature, Tag, Repository, Application } from '../types/feature.types';
+import type { Feature, Tag, Repository, Application, Link } from '../types/feature.types';
 import { getAllFeatures, getAllTags, getAllRepositories, getAllApps, saveFeature, saveTag, saveRepository, saveApp } from './db';
 
 const LAST_BACKUP_KEY = 'lastBackupTimestamp';
@@ -175,6 +175,21 @@ export function toXML(data: BackupData): string {
       xml += `        <repositoryId>${escapeXML(repoId)}</repositoryId>\n`;
     });
     xml += '      </repositoryIds>\n';
+    if (app.links && app.links.length > 0) {
+      xml += '      <links>\n';
+      app.links.forEach(link => {
+        xml += '        <link>\n';
+        xml += `          <id>${escapeXML(link.id)}</id>\n`;
+        xml += `          <displayName>${escapeXML(link.displayName)}</displayName>\n`;
+        xml += `          <description>${escapeXML(link.description)}</description>\n`;
+        xml += `          <icon>${escapeXML(link.icon)}</icon>\n`;
+        xml += `          <href>${escapeXML(link.href)}</href>\n`;
+        xml += `          <target>${escapeXML(link.target)}</target>\n`;
+        xml += `          <environment>${escapeXML(link.environment)}</environment>\n`;
+        xml += '        </link>\n';
+      });
+      xml += '      </links>\n';
+    }
     xml += `      <createdAt>${app.createdAt}</createdAt>\n`;
     xml += `      <updatedAt>${app.updatedAt}</updatedAt>\n`;
     xml += '    </app>\n';
@@ -309,6 +324,7 @@ function parseCSVBackup(content: string): BackupData {
         id: parts[0],
         name: parts[1],
         repositoryIds: parts[2].split(';').filter(id => id),
+        links: [], // CSV doesn't support nested links, will be empty
         createdAt: parseInt(parts[3], 10),
         updatedAt: parseInt(parts[4], 10),
       });
@@ -394,10 +410,25 @@ function parseXMLBackup(content: string): BackupData {
       repoIdArray.push(repoIdNode.textContent || '');
     });
 
+    const linkNodes = node.querySelectorAll('links > link');
+    const linksArray: Link[] = [];
+    linkNodes.forEach(linkNode => {
+      linksArray.push({
+        id: linkNode.querySelector('id')?.textContent || '',
+        displayName: linkNode.querySelector('displayName')?.textContent || '',
+        description: linkNode.querySelector('description')?.textContent || '',
+        icon: linkNode.querySelector('icon')?.textContent || '',
+        href: linkNode.querySelector('href')?.textContent || '',
+        target: (linkNode.querySelector('target')?.textContent || '_blank') as '_blank' | '_self' | '_parent' | '_top',
+        environment: (linkNode.querySelector('environment')?.textContent || 'Production') as 'Production' | 'Test' | 'Development',
+      });
+    });
+
     apps.push({
       id: node.querySelector('id')?.textContent || '',
       name: node.querySelector('name')?.textContent || '',
       repositoryIds: repoIdArray,
+      links: linksArray,
       createdAt: parseInt(node.querySelector('createdAt')?.textContent || '0', 10),
       updatedAt: parseInt(node.querySelector('updatedAt')?.textContent || '0', 10),
     });

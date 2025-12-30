@@ -24,7 +24,7 @@ interface FeaturesDB extends DBSchema {
 }
 
 const DB_NAME = 'features-db';
-const DB_VERSION = 3;
+const DB_VERSION = 4;
 
 let dbInstance: IDBPDatabase<FeaturesDB> | null = null;
 
@@ -34,7 +34,7 @@ export async function getDB(): Promise<IDBPDatabase<FeaturesDB>> {
   }
 
   dbInstance = await openDB<FeaturesDB>(DB_NAME, DB_VERSION, {
-    upgrade(db, oldVersion) {
+    upgrade(db, oldVersion, _newVersion, transaction) {
       // Create features store
       if (!db.objectStoreNames.contains('features')) {
         const featuresStore = db.createObjectStore('features', { keyPath: 'id' });
@@ -56,6 +56,27 @@ export async function getDB(): Promise<IDBPDatabase<FeaturesDB>> {
       if (oldVersion < 3 && !db.objectStoreNames.contains('apps')) {
         const appsStore = db.createObjectStore('apps', { keyPath: 'id' });
         appsStore.createIndex('by-name', 'name');
+      }
+
+      // Migrate apps to include links array (added in version 4)
+      if (oldVersion < 4 && db.objectStoreNames.contains('apps')) {
+        const appsStore = transaction.objectStore('apps');
+        appsStore.openCursor().then(function updateApp(cursor): Promise<void> | undefined {
+          if (!cursor) return;
+          try {
+            const app = cursor.value;
+            if (!app.links) {
+              app.links = [];
+              cursor.update(app);
+            }
+            return cursor.continue().then(updateApp);
+          } catch (error) {
+            console.error('Error migrating app:', error);
+            return cursor.continue().then(updateApp);
+          }
+        }).catch(error => {
+          console.error('Error during app migration:', error);
+        });
       }
     },
   });

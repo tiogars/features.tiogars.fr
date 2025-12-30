@@ -8,10 +8,15 @@ import {
   List,
   ListItem,
   ListItemText,
+  ListItemIcon,
+  Chip,
+  Link as MuiLink,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import GitHubIcon from '@mui/icons-material/GitHub';
+import LinkIcon from '@mui/icons-material/Link';
+import LaunchIcon from '@mui/icons-material/Launch';
 import type { AppCardProps } from './AppCard.types';
 
 const AppCard = ({ app, repositories, onEdit, onDelete }: AppCardProps) => {
@@ -24,6 +29,20 @@ const AppCard = ({ app, repositories, onEdit, onDelete }: AppCardProps) => {
   };
 
   const appRepositories = repositories.filter(repo => app.repositoryIds.includes(repo.id));
+  const appLinks = app.links || [];
+
+  const getEnvironmentColor = (env: string): 'success' | 'warning' | 'info' | 'default' => {
+    switch (env) {
+      case 'Production':
+        return 'success';
+      case 'Test':
+        return 'warning';
+      case 'Development':
+        return 'info';
+      default:
+        return 'default';
+    }
+  };
 
   return (
     <Card>
@@ -33,6 +52,7 @@ const AppCard = ({ app, repositories, onEdit, onDelete }: AppCardProps) => {
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
           {appRepositories.length} {appRepositories.length === 1 ? 'repository' : 'repositories'}
+          {appLinks.length > 0 && ` • ${appLinks.length} ${appLinks.length === 1 ? 'link' : 'links'}`}
         </Typography>
         {appRepositories.length > 0 && (
           <Box sx={{ mb: 2 }}>
@@ -46,6 +66,45 @@ const AppCard = ({ app, repositories, onEdit, onDelete }: AppCardProps) => {
                   <ListItemText 
                     primary={`${repo.owner}/${repo.name}`}
                     primaryTypographyProps={{ variant: 'body2' }}
+                  />
+                </ListItem>
+              ))}
+            </List>
+          </Box>
+        )}
+        {appLinks.length > 0 && (
+          <Box sx={{ mb: 2 }}>
+            <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+              Links:
+            </Typography>
+            <List dense disablePadding>
+              {appLinks.map((link) => (
+                <ListItem key={link.id} disablePadding sx={{ py: 0.5 }}>
+                  <ListItemIcon sx={{ minWidth: 32 }}>
+                    {link.icon ? <LinkIcon fontSize="small" /> : <LaunchIcon fontSize="small" />}
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <MuiLink 
+                          href={link.href} 
+                          target={link.target}
+                          rel="noopener noreferrer"
+                          variant="body2"
+                          sx={{ textDecoration: 'none' }}
+                        >
+                          {link.displayName}
+                        </MuiLink>
+                        <Chip 
+                          label={link.environment} 
+                          size="small" 
+                          color={getEnvironmentColor(link.environment)}
+                          sx={{ height: 20, fontSize: '0.7rem' }}
+                        />
+                      </Box>
+                    }
+                    secondary={link.description}
+                    secondaryTypographyProps={{ variant: 'caption' }}
                   />
                 </ListItem>
               ))}
