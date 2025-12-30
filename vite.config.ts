@@ -2,7 +2,7 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
-const BASE_PATH = '/features.tiogars.fr/';
+const BASE_PATH = '/';
 const SHARE_TARGET_PATH = 'share';
 
 // https://vite.dev/config/
