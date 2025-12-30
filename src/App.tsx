@@ -5,7 +5,6 @@ import {
   CssBaseline,
   Container,
   AppBar,
-  Toolbar,
   Typography,
   Box,
   CircularProgress,
@@ -28,6 +27,7 @@ import AppForm from './components/AppForm';
 import CreateIssueDialog from './components/CreateIssueDialog';
 import SpeedDialActions from './components/SpeedDialActions';
 import Footer from './components/Footer';
+import Header from './components/Header';
 import ConfirmDialog from './components/ConfirmDialog';
 import BackupRestoreDialog from './components/BackupRestoreDialog';
 import type { Feature, Repository } from './types/feature.types';
@@ -373,11 +373,7 @@ function App() {
       <CssBaseline />
       <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
         <AppBar position="static">
-          <Toolbar>
-            <Typography variant="h6" component="h1" sx={{ flexGrow: 1 }}>
-              Features Manager
-            </Typography>
-          </Toolbar>
+          <Header websiteName="Features Manager" />
           <Tabs
             value={currentTab}
             onChange={handleTabChange}
