@@ -1,4 +1,5 @@
 import { useState, useCallback, useMemo, useEffect } from 'react';
+import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import {
   ThemeProvider,
   CssBaseline,
@@ -32,9 +33,18 @@ import type { RepositoryFormData } from './components/RepositoryForm/RepositoryF
 import { parseGitHubUrl, findExistingRepository } from './utils/github';
 
 const REPOSITORY_URL = 'https://github.com/tiogars/features.tiogars.fr';
-const REPOSITORY_TAB_INDEX = 1;
+
+// Route configuration for tab navigation
+const ROUTES = {
+  FEATURES: '/',
+  REPOSITORIES: '/repositories',
+} as const;
+
+const TAB_INDEX_TO_ROUTE = [ROUTES.FEATURES, ROUTES.REPOSITORIES] as const;
 
 function App() {
+  const navigate = useNavigate();
+  const location = useLocation();
   const { features, loading: featuresLoading, addFeature, updateFeature, removeFeature } = useFeatures();
   const { tags, addTag } = useTags();
   const { repositories, loading: repositoriesLoading, addRepository, updateRepository, removeRepository } = useRepositories();
@@ -49,7 +59,6 @@ function App() {
   const [repositoryConfirmDialogOpen, setRepositoryConfirmDialogOpen] = useState(false);
   const [createIssueDialogOpen, setCreateIssueDialogOpen] = useState(false);
   const [featureForIssue, setFeatureForIssue] = useState<Feature | null>(null);
-  const [currentTab, setCurrentTab] = useState(0);
   const [backupRestoreDialogOpen, setBackupRestoreDialogOpen] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
@@ -90,8 +99,8 @@ function App() {
               setSnackbarSeverity('success');
               setSnackbarOpen(true);
               
-              // Switch to repository tab to show the new repository
-              setCurrentTab(REPOSITORY_TAB_INDEX);
+              // Navigate to repository page to show the new repository
+              navigate(ROUTES.REPOSITORIES);
             } catch (error) {
               console.error('Error adding repository:', error);
               setSnackbarMessage('Failed to add repository');
@@ -103,8 +112,8 @@ function App() {
             setSnackbarSeverity('info');
             setSnackbarOpen(true);
             
-            // Switch to repository tab to show existing repositories
-            setCurrentTab(REPOSITORY_TAB_INDEX);
+            // Navigate to repository page to show existing repositories
+            navigate(ROUTES.REPOSITORIES);
           }
         } else {
           // Not a GitHub URL or invalid format
@@ -124,7 +133,7 @@ function App() {
     if (!repositoriesLoading) {
       handleSharedUrl();
     }
-  }, [repositories, repositoriesLoading, addRepository]);
+  }, [repositories, repositoriesLoading, addRepository, navigate]);
 
   const handleOpenForm = useCallback(() => {
     setEditingFeature(undefined);
@@ -257,8 +266,13 @@ function App() {
   }, [repositories, featureForIssue, handleCloseCreateIssueDialog]);
 
   const handleTabChange = useCallback((_event: React.SyntheticEvent, newValue: number) => {
-    setCurrentTab(newValue);
-  }, []);
+    // Navigate based on tab index using centralized route mapping
+    // Fallback to FEATURES route if newValue is out of bounds
+    const targetRoute = newValue >= 0 && newValue < TAB_INDEX_TO_ROUTE.length 
+      ? TAB_INDEX_TO_ROUTE[newValue]
+      : ROUTES.FEATURES;
+    navigate(targetRoute);
+  }, [navigate]);
 
   const handleOpenBackupRestoreDialog = useCallback(() => {
     setBackupRestoreDialogOpen(true);
@@ -271,6 +285,15 @@ function App() {
   const handleCloseSnackbar = useCallback(() => {
     setSnackbarOpen(false);
   }, []);
+
+  // Determine current tab based on route using centralized mapping
+  // Defaults to 0 (Features tab) for unknown routes
+  const getTabIndex = (pathname: string): number => {
+    if (pathname === ROUTES.FEATURES) return 0;
+    if (pathname === ROUTES.REPOSITORIES) return 1;
+    return 0;
+  };
+  const currentTab = getTabIndex(location.pathname);
 
   if (featuresLoading || repositoriesLoading) {
     return (
@@ -306,34 +329,36 @@ function App() {
         </AppBar>
 
         <Container maxWidth="lg" sx={{ py: 4, flex: 1 }}>
-          {currentTab === 0 && (
-            <FeatureList
-              features={features}
-              tags={tags}
-              onEdit={handleEditFeature}
-              onDelete={handleDeleteFeature}
-              onCreateIssue={handleCreateIssue}
-              selectedTags={selectedTags}
-              onTagFilterChange={setSelectedTags}
-            />
-          )}
-          {currentTab === 1 && (
-            <Box>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-                <Typography variant="h5">
-                  Repositories
-                </Typography>
-                <Box>
-                  <SpeedDialActions onAddFeature={handleOpenRepositoryForm} />
-                </Box>
-              </Box>
-              <RepositoryList
-                repositories={repositories}
-                onEdit={handleEditRepository}
-                onDelete={handleDeleteRepository}
+          <Routes>
+            <Route path={ROUTES.FEATURES} element={
+              <FeatureList
+                features={features}
+                tags={tags}
+                onEdit={handleEditFeature}
+                onDelete={handleDeleteFeature}
+                onCreateIssue={handleCreateIssue}
+                selectedTags={selectedTags}
+                onTagFilterChange={setSelectedTags}
               />
-            </Box>
-          )}
+            } />
+            <Route path={ROUTES.REPOSITORIES} element={
+              <Box>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                  <Typography variant="h5">
+                    Repositories
+                  </Typography>
+                  <Box>
+                    <SpeedDialActions onAddFeature={handleOpenRepositoryForm} />
+                  </Box>
+                </Box>
+                <RepositoryList
+                  repositories={repositories}
+                  onEdit={handleEditRepository}
+                  onDelete={handleDeleteRepository}
+                />
+              </Box>
+            } />
+          </Routes>
         </Container>
 
         <Footer repositoryUrl={REPOSITORY_URL} />
