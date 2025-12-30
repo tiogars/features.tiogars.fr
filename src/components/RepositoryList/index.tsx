@@ -13,7 +13,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import GitHubIcon from '@mui/icons-material/GitHub';
 import type { RepositoryListProps } from './RepositoryList.types';
 
-export default function RepositoryList({ repositories, onEdit, onDelete }: RepositoryListProps) {
+const RepositoryList = ({ repositories, onEdit, onDelete }: RepositoryListProps) => {
   if (repositories.length === 0) {
     return (
       <Paper sx={{ p: 3, textAlign: 'center' }}>
@@ -61,4 +61,6 @@ export default function RepositoryList({ repositories, onEdit, onDelete }: Repos
       </List>
     </Paper>
   );
-}
+};
+
+export default RepositoryList;

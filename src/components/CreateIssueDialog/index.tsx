@@ -15,13 +15,13 @@ import {
 } from '@mui/material';
 import type { CreateIssueDialogProps } from './CreateIssueDialog.types';
 
-export default function CreateIssueDialog({
+const CreateIssueDialog = ({
   open,
   feature,
   repositories,
   onClose,
   onCreateIssue,
-}: CreateIssueDialogProps) {
+}: CreateIssueDialogProps) => {
   const [selectedRepositoryId, setSelectedRepositoryId] = useState('');
 
   const handleCreate = () => {
@@ -90,4 +90,6 @@ export default function CreateIssueDialog({
       </DialogActions>
     </Dialog>
   );
-}
+};
+
+export default CreateIssueDialog;

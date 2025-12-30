@@ -13,7 +13,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import GitHubIcon from '@mui/icons-material/GitHub';
 import type { FeatureCardProps } from './FeatureCard.types';
 
-export default function FeatureCard({ feature, tags, onEdit, onDelete, onCreateIssue }: FeatureCardProps) {
+const FeatureCard = ({ feature, tags, onEdit, onDelete, onCreateIssue }: FeatureCardProps) => {
   const getTagColor = (tagName: string) => {
     const tag = tags.find(t => t.name === tagName);
     return tag?.color || '#808080';
@@ -83,4 +83,6 @@ export default function FeatureCard({ feature, tags, onEdit, onDelete, onCreateI
       </CardActions>
     </Card>
   );
-}
+};
+
+export default FeatureCard;

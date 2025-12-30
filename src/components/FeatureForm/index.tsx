@@ -12,13 +12,13 @@ import {
 import { useForm, Controller } from 'react-hook-form';
 import type { FeatureFormProps, FeatureFormData } from './FeatureForm.types';
 
-export default function FeatureForm({
+const FeatureForm = ({
   open,
   onClose,
   onSubmit,
   initialData,
   availableTags,
-}: FeatureFormProps) {
+}: FeatureFormProps) => {
   const { control, handleSubmit, reset, formState: { errors } } = useForm<FeatureFormData>({
     defaultValues: {
       title: '',
@@ -135,4 +135,6 @@ export default function FeatureForm({
       </form>
     </Dialog>
   );
-}
+};
+
+export default FeatureForm;

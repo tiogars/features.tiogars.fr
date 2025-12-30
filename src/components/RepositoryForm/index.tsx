@@ -10,12 +10,12 @@ import {
 import { useForm, Controller } from 'react-hook-form';
 import type { RepositoryFormProps, RepositoryFormData } from './RepositoryForm.types';
 
-export default function RepositoryForm({
+const RepositoryForm = ({
   open,
   onClose,
   onSubmit,
   initialData,
-}: RepositoryFormProps) {
+}: RepositoryFormProps) => {
   const { control, handleSubmit, reset, formState: { errors } } = useForm<RepositoryFormData>({
     defaultValues: {
       name: '',
@@ -119,4 +119,6 @@ export default function RepositoryForm({
       </form>
     </Dialog>
   );
-}
+};
+
+export default RepositoryForm;

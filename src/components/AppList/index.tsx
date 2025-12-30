@@ -2,7 +2,7 @@ import { Box, Typography, Paper } from '@mui/material';
 import AppCard from '../AppCard';
 import type { AppListProps } from './AppList.types';
 
-export default function AppList({ apps, repositories, onEdit, onDelete }: AppListProps) {
+const AppList = ({ apps, repositories, onEdit, onDelete }: AppListProps) => {
   if (apps.length === 0) {
     return (
       <Paper sx={{ p: 3, textAlign: 'center' }}>
@@ -27,4 +27,6 @@ export default function AppList({ apps, repositories, onEdit, onDelete }: AppLis
       ))}
     </Box>
   );
-}
+};
+
+export default AppList;

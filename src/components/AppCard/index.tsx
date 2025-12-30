@@ -14,7 +14,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import GitHubIcon from '@mui/icons-material/GitHub';
 import type { AppCardProps } from './AppCard.types';
 
-export default function AppCard({ app, repositories, onEdit, onDelete }: AppCardProps) {
+const AppCard = ({ app, repositories, onEdit, onDelete }: AppCardProps) => {
   const formatDate = (timestamp: number) => {
     return new Date(timestamp).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -76,4 +76,6 @@ export default function AppCard({ app, repositories, onEdit, onDelete }: AppCard
       </CardActions>
     </Card>
   );
-}
+};
+
+export default AppCard;

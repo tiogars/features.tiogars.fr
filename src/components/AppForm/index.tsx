@@ -18,13 +18,13 @@ import {
 import { useForm, Controller } from 'react-hook-form';
 import type { AppFormProps, AppFormData } from './AppForm.types';
 
-export default function AppForm({
+const AppForm = ({
   open,
   onClose,
   onSubmit,
   initialData,
   repositories,
-}: AppFormProps) {
+}: AppFormProps) => {
   const { control, handleSubmit, reset, formState: { errors } } = useForm<AppFormData>({
     defaultValues: {
       name: '',
@@ -131,4 +131,6 @@ export default function AppForm({
       </form>
     </Dialog>
   );
-}
+};
+
+export default AppForm;
