@@ -1,5 +1,5 @@
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
-import type { Feature, Tag, Repository } from '../types/feature.types';
+import type { Feature, Tag, Repository, Application } from '../types/feature.types';
 
 interface FeaturesDB extends DBSchema {
   features: {
@@ -16,10 +16,15 @@ interface FeaturesDB extends DBSchema {
     value: Repository;
     indexes: { 'by-name': string };
   };
+  apps: {
+    key: string;
+    value: Application;
+    indexes: { 'by-name': string };
+  };
 }
 
 const DB_NAME = 'features-db';
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 
 let dbInstance: IDBPDatabase<FeaturesDB> | null = null;
 
@@ -45,6 +50,12 @@ export async function getDB(): Promise<IDBPDatabase<FeaturesDB>> {
       if (oldVersion < 2 && !db.objectStoreNames.contains('repositories')) {
         const repositoriesStore = db.createObjectStore('repositories', { keyPath: 'id' });
         repositoriesStore.createIndex('by-name', 'name');
+      }
+
+      // Create apps store (added in version 3)
+      if (oldVersion < 3 && !db.objectStoreNames.contains('apps')) {
+        const appsStore = db.createObjectStore('apps', { keyPath: 'id' });
+        appsStore.createIndex('by-name', 'name');
       }
     },
   });
@@ -115,4 +126,26 @@ export async function saveRepository(repository: Repository): Promise<void> {
 export async function deleteRepository(id: string): Promise<void> {
   const db = await getDB();
   await db.delete('repositories', id);
+}
+
+// Apps operations
+export async function getAllApps(): Promise<Application[]> {
+  const db = await getDB();
+  const apps = await db.getAllFromIndex('apps', 'by-name');
+  return apps;
+}
+
+export async function getApp(id: string): Promise<Application | undefined> {
+  const db = await getDB();
+  return db.get('apps', id);
+}
+
+export async function saveApp(app: Application): Promise<void> {
+  const db = await getDB();
+  await db.put('apps', app);
+}
+
+export async function deleteApp(id: string): Promise<void> {
+  const db = await getDB();
+  await db.delete('apps', id);
 }

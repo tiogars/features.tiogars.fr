@@ -1,5 +1,5 @@
-import type { Feature, Tag, Repository } from '../types/feature.types';
-import { getAllFeatures, getAllTags, getAllRepositories, saveFeature, saveTag, saveRepository } from './db';
+import type { Feature, Tag, Repository, Application } from '../types/feature.types';
+import { getAllFeatures, getAllTags, getAllRepositories, getAllApps, saveFeature, saveTag, saveRepository, saveApp } from './db';
 
 const LAST_BACKUP_KEY = 'lastBackupTimestamp';
 
@@ -7,6 +7,7 @@ export interface BackupData {
   features: Feature[];
   tags: Tag[];
   repositories: Repository[];
+  apps: Application[];
   timestamp: number;
   version: string;
 }
@@ -36,18 +37,20 @@ export function isBackupOlderThanWeek(): boolean {
 
 // Export all data to a backup object
 export async function exportData(): Promise<BackupData> {
-  const [features, tags, repositories] = await Promise.all([
+  const [features, tags, repositories, apps] = await Promise.all([
     getAllFeatures(),
     getAllTags(),
     getAllRepositories(),
+    getAllApps(),
   ]);
 
   return {
     features,
     tags,
     repositories,
+    apps,
     timestamp: Date.now(),
-    version: '1.0',
+    version: '2.0',
   };
 }
 
@@ -88,6 +91,17 @@ export function toCSV(data: BackupData): string {
     const name = `"${repo.name.replace(/"/g, '""')}"`;
     const owner = `"${repo.owner.replace(/"/g, '""')}"`;
     csv += `${repo.id},${name},${owner},${repo.url},${repo.createdAt},${repo.updatedAt}\n`;
+  });
+
+  csv += '\n';
+
+  // Apps CSV
+  csv += 'APPS\n';
+  csv += 'ID,Name,Repository IDs,Created At,Updated At\n';
+  data.apps.forEach(app => {
+    const name = `"${app.name.replace(/"/g, '""')}"`;
+    const repositoryIds = app.repositoryIds.join(';');
+    csv += `${app.id},${name},"${repositoryIds}",${app.createdAt},${app.updatedAt}\n`;
   });
 
   return csv;
@@ -150,6 +164,23 @@ export function toXML(data: BackupData): string {
   });
   xml += '  </repositories>\n';
 
+  // Apps
+  xml += '  <apps>\n';
+  data.apps.forEach(app => {
+    xml += '    <app>\n';
+    xml += `      <id>${escapeXML(app.id)}</id>\n`;
+    xml += `      <name>${escapeXML(app.name)}</name>\n`;
+    xml += '      <repositoryIds>\n';
+    app.repositoryIds.forEach(repoId => {
+      xml += `        <repositoryId>${escapeXML(repoId)}</repositoryId>\n`;
+    });
+    xml += '      </repositoryIds>\n';
+    xml += `      <createdAt>${app.createdAt}</createdAt>\n`;
+    xml += `      <updatedAt>${app.updatedAt}</updatedAt>\n`;
+    xml += '    </app>\n';
+  });
+  xml += '  </apps>\n';
+
   xml += '</backup>';
   return xml;
 }
@@ -190,6 +221,7 @@ function parseCSVBackup(content: string): BackupData {
   const features: Feature[] = [];
   const tags: Tag[] = [];
   const repositories: Repository[] = [];
+  const apps: Application[] = [];
   
   let currentSection = '';
   let i = 0;
@@ -207,6 +239,10 @@ function parseCSVBackup(content: string): BackupData {
       continue;
     } else if (line === 'REPOSITORIES') {
       currentSection = 'repositories';
+      i += 2; // Skip header
+      continue;
+    } else if (line === 'APPS') {
+      currentSection = 'apps';
       i += 2; // Skip header
       continue;
     }
@@ -268,6 +304,14 @@ function parseCSVBackup(content: string): BackupData {
         createdAt: parseInt(parts[4], 10),
         updatedAt: parseInt(parts[5], 10),
       });
+    } else if (currentSection === 'apps' && parts.length >= 5) {
+      apps.push({
+        id: parts[0],
+        name: parts[1],
+        repositoryIds: parts[2].split(';').filter(id => id),
+        createdAt: parseInt(parts[3], 10),
+        updatedAt: parseInt(parts[4], 10),
+      });
     }
 
     i++;
@@ -277,8 +321,9 @@ function parseCSVBackup(content: string): BackupData {
     features,
     tags,
     repositories,
+    apps,
     timestamp: Date.now(),
-    version: '1.0',
+    version: '2.0',
   };
 }
 
@@ -296,6 +341,7 @@ function parseXMLBackup(content: string): BackupData {
   const features: Feature[] = [];
   const tags: Tag[] = [];
   const repositories: Repository[] = [];
+  const apps: Application[] = [];
 
   // Parse features
   const featureNodes = xmlDoc.querySelectorAll('features > feature');
@@ -339,6 +385,24 @@ function parseXMLBackup(content: string): BackupData {
     });
   });
 
+  // Parse apps
+  const appNodes = xmlDoc.querySelectorAll('apps > app');
+  appNodes.forEach(node => {
+    const repoIdNodes = node.querySelectorAll('repositoryIds > repositoryId');
+    const repoIdArray: string[] = [];
+    repoIdNodes.forEach(repoIdNode => {
+      repoIdArray.push(repoIdNode.textContent || '');
+    });
+
+    apps.push({
+      id: node.querySelector('id')?.textContent || '',
+      name: node.querySelector('name')?.textContent || '',
+      repositoryIds: repoIdArray,
+      createdAt: parseInt(node.querySelector('createdAt')?.textContent || '0', 10),
+      updatedAt: parseInt(node.querySelector('updatedAt')?.textContent || '0', 10),
+    });
+  });
+
   const timestamp = xmlDoc.querySelector('backup')?.getAttribute('timestamp');
   const version = xmlDoc.querySelector('backup')?.getAttribute('version');
 
@@ -346,8 +410,9 @@ function parseXMLBackup(content: string): BackupData {
     features,
     tags,
     repositories,
+    apps,
     timestamp: timestamp ? parseInt(timestamp, 10) : Date.now(),
-    version: version || '1.0',
+    version: version || '2.0',
   };
 }
 
@@ -369,6 +434,7 @@ export async function importBackup(content: string, format: 'json' | 'xml' | 'cs
       ...backupData.features.map(feature => saveFeature(feature)),
       ...backupData.tags.map(tag => saveTag(tag)),
       ...backupData.repositories.map(repo => saveRepository(repo)),
+      ...(backupData.apps || []).map(app => saveApp(app)),
     ]);
 
   } catch (error) {

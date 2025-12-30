@@ -21,3 +21,11 @@ export interface Repository {
   createdAt: number;
   updatedAt: number;
 }
+
+export interface Application {
+  id: string;
+  name: string;
+  repositoryIds: string[];
+  createdAt: number;
+  updatedAt: number;
+}
