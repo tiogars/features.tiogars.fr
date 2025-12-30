@@ -18,18 +18,23 @@ import { theme } from './theme/theme';
 import { useFeatures } from './hooks/useFeatures';
 import { useTags } from './hooks/useTags';
 import { useRepositories } from './hooks/useRepositories';
+import { useApps } from './hooks/useApps';
 import FeatureList from './components/FeatureList';
 import FeatureForm from './components/FeatureForm';
 import RepositoryList from './components/RepositoryList';
 import RepositoryForm from './components/RepositoryForm';
+import AppList from './components/AppList';
+import AppForm from './components/AppForm';
 import CreateIssueDialog from './components/CreateIssueDialog';
 import SpeedDialActions from './components/SpeedDialActions';
 import Footer from './components/Footer';
 import ConfirmDialog from './components/ConfirmDialog';
 import BackupRestoreDialog from './components/BackupRestoreDialog';
 import type { Feature, Repository } from './types/feature.types';
+import type { Application } from './types/feature.types';
 import type { FeatureFormData } from './components/FeatureForm/FeatureForm.types';
 import type { RepositoryFormData } from './components/RepositoryForm/RepositoryForm.types';
+import type { AppFormData } from './components/AppForm/AppForm.types';
 import { parseGitHubUrl, findExistingRepository } from './utils/github';
 
 const REPOSITORY_URL = 'https://github.com/tiogars/features.tiogars.fr';
@@ -38,9 +43,10 @@ const REPOSITORY_URL = 'https://github.com/tiogars/features.tiogars.fr';
 const ROUTES = {
   FEATURES: '/',
   REPOSITORIES: '/repositories',
+  APPS: '/apps',
 } as const;
 
-const TAB_INDEX_TO_ROUTE = [ROUTES.FEATURES, ROUTES.REPOSITORIES] as const;
+const TAB_INDEX_TO_ROUTE = [ROUTES.FEATURES, ROUTES.REPOSITORIES, ROUTES.APPS] as const;
 
 function App() {
   const navigate = useNavigate();
@@ -48,6 +54,7 @@ function App() {
   const { features, loading: featuresLoading, addFeature, updateFeature, removeFeature } = useFeatures();
   const { tags, addTag } = useTags();
   const { repositories, loading: repositoriesLoading, addRepository, updateRepository, removeRepository } = useRepositories();
+  const { apps, loading: appsLoading, addApp, updateApp, removeApp } = useApps();
   const [formOpen, setFormOpen] = useState(false);
   const [editingFeature, setEditingFeature] = useState<Feature | undefined>(undefined);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
@@ -57,6 +64,10 @@ function App() {
   const [editingRepository, setEditingRepository] = useState<Repository | undefined>(undefined);
   const [repositoryToDelete, setRepositoryToDelete] = useState<string | null>(null);
   const [repositoryConfirmDialogOpen, setRepositoryConfirmDialogOpen] = useState(false);
+  const [appFormOpen, setAppFormOpen] = useState(false);
+  const [editingApp, setEditingApp] = useState<Application | undefined>(undefined);
+  const [appToDelete, setAppToDelete] = useState<string | null>(null);
+  const [appConfirmDialogOpen, setAppConfirmDialogOpen] = useState(false);
   const [createIssueDialogOpen, setCreateIssueDialogOpen] = useState(false);
   const [featureForIssue, setFeatureForIssue] = useState<Feature | null>(null);
   const [backupRestoreDialogOpen, setBackupRestoreDialogOpen] = useState(false);
@@ -241,6 +252,54 @@ function App() {
     setRepositoryConfirmDialogOpen(false);
   }, []);
 
+  const handleOpenAppForm = useCallback(() => {
+    setEditingApp(undefined);
+    setAppFormOpen(true);
+  }, []);
+
+  const handleCloseAppForm = useCallback(() => {
+    setAppFormOpen(false);
+    setEditingApp(undefined);
+  }, []);
+
+  const handleSubmitAppForm = useCallback(async (data: AppFormData) => {
+    if (editingApp) {
+      await updateApp(editingApp.id, {
+        name: data.name,
+        repositoryIds: data.repositoryIds,
+      });
+    } else {
+      await addApp({
+        name: data.name,
+        repositoryIds: data.repositoryIds,
+      });
+    }
+    handleCloseAppForm();
+  }, [editingApp, addApp, updateApp, handleCloseAppForm]);
+
+  const handleEditApp = useCallback((app: Application) => {
+    setEditingApp(app);
+    setAppFormOpen(true);
+  }, []);
+
+  const handleDeleteApp = useCallback((id: string) => {
+    setAppToDelete(id);
+    setAppConfirmDialogOpen(true);
+  }, []);
+
+  const handleConfirmDeleteApp = useCallback(async () => {
+    if (appToDelete) {
+      await removeApp(appToDelete);
+      setAppToDelete(null);
+    }
+    setAppConfirmDialogOpen(false);
+  }, [appToDelete, removeApp]);
+
+  const handleCancelDeleteApp = useCallback(() => {
+    setAppToDelete(null);
+    setAppConfirmDialogOpen(false);
+  }, []);
+
   const handleCreateIssue = useCallback((feature: Feature) => {
     setFeatureForIssue(feature);
     setCreateIssueDialogOpen(true);
@@ -291,11 +350,12 @@ function App() {
   const getTabIndex = (pathname: string): number => {
     if (pathname === ROUTES.FEATURES) return 0;
     if (pathname === ROUTES.REPOSITORIES) return 1;
+    if (pathname === ROUTES.APPS) return 2;
     return 0;
   };
   const currentTab = getTabIndex(location.pathname);
 
-  if (featuresLoading || repositoriesLoading) {
+  if (featuresLoading || repositoriesLoading || appsLoading) {
     return (
       <ThemeProvider theme={theme}>
         <CssBaseline />
@@ -325,6 +385,7 @@ function App() {
           >
             <Tab label="Features" />
             <Tab label="Repository Management" />
+            <Tab label="Apps Management" />
           </Tabs>
         </AppBar>
 
@@ -358,6 +419,24 @@ function App() {
                 />
               </Box>
             } />
+            <Route path={ROUTES.APPS} element={
+              <Box>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                  <Typography variant="h5">
+                    Apps
+                  </Typography>
+                  <Box>
+                    <SpeedDialActions onAddFeature={handleOpenAppForm} />
+                  </Box>
+                </Box>
+                <AppList
+                  apps={apps}
+                  repositories={repositories}
+                  onEdit={handleEditApp}
+                  onDelete={handleDeleteApp}
+                />
+              </Box>
+            } />
           </Routes>
         </Container>
 
@@ -378,6 +457,14 @@ function App() {
           onClose={handleCloseRepositoryForm}
           onSubmit={handleSubmitRepositoryForm}
           initialData={editingRepository}
+        />
+
+        <AppForm
+          open={appFormOpen}
+          onClose={handleCloseAppForm}
+          onSubmit={handleSubmitAppForm}
+          initialData={editingApp}
+          repositories={repositories}
         />
 
         <CreateIssueDialog
@@ -402,6 +489,14 @@ function App() {
           message="Are you sure you want to delete this repository? This action cannot be undone."
           onConfirm={handleConfirmDeleteRepository}
           onCancel={handleCancelDeleteRepository}
+        />
+
+        <ConfirmDialog
+          open={appConfirmDialogOpen}
+          title="Delete App"
+          message="Are you sure you want to delete this app? This action cannot be undone."
+          onConfirm={handleConfirmDeleteApp}
+          onCancel={handleCancelDeleteApp}
         />
 
         <BackupRestoreDialog
