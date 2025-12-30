@@ -31,7 +31,7 @@ import {
   isBackupOlderThanWeek,
 } from '../../utils/backup';
 
-export default function BackupRestoreDialog({ open, onClose }: BackupRestoreDialogProps) {
+const BackupRestoreDialog = ({ open, onClose }: BackupRestoreDialogProps) => {
   const [format, setFormat] = useState<BackupFormat>('json');
   const [loading, setLoading] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
@@ -204,4 +204,6 @@ export default function BackupRestoreDialog({ open, onClose }: BackupRestoreDial
       </Snackbar>
     </>
   );
-}
+};
+
+export default BackupRestoreDialog;

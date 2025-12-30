@@ -8,13 +8,13 @@ import {
 } from '@mui/material';
 import type { ConfirmDialogProps } from './ConfirmDialog.types';
 
-export default function ConfirmDialog({
+const ConfirmDialog = ({
   open,
   title,
   message,
   onConfirm,
   onCancel,
-}: ConfirmDialogProps) {
+}: ConfirmDialogProps) => {
   return (
     <Dialog open={open} onClose={onCancel}>
       <DialogTitle>{title}</DialogTitle>
@@ -29,4 +29,6 @@ export default function ConfirmDialog({
       </DialogActions>
     </Dialog>
   );
-}
+};
+
+export default ConfirmDialog;

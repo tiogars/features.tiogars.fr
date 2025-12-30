@@ -3,7 +3,7 @@ import GitHubIcon from '@mui/icons-material/GitHub';
 import BugReportIcon from '@mui/icons-material/BugReport';
 import type { FooterProps } from './Footer.types';
 
-export default function Footer({ repositoryUrl }: FooterProps) {
+const Footer = ({ repositoryUrl }: FooterProps) => {
   const issueUrl = `${repositoryUrl}/issues/new`;
 
   return (
@@ -59,4 +59,6 @@ export default function Footer({ repositoryUrl }: FooterProps) {
       </Container>
     </Box>
   );
-}
+};
+
+export default Footer;

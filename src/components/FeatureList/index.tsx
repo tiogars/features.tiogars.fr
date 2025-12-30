@@ -2,7 +2,7 @@ import { Box, Typography, Chip, Paper } from '@mui/material';
 import FeatureCard from '../FeatureCard';
 import type { FeatureListProps } from './FeatureList.types';
 
-export default function FeatureList({
+const FeatureList = ({
   features,
   tags,
   onEdit,
@@ -10,7 +10,7 @@ export default function FeatureList({
   onCreateIssue,
   selectedTags,
   onTagFilterChange,
-}: FeatureListProps) {
+}: FeatureListProps) => {
   const filteredFeatures = selectedTags.length > 0
     ? features.filter(feature =>
         selectedTags.every(tag => feature.tags.includes(tag))
@@ -79,4 +79,6 @@ export default function FeatureList({
       )}
     </Box>
   );
-}
+};
+
+export default FeatureList;
