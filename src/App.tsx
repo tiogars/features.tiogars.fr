@@ -273,7 +273,10 @@ function App() {
   const handleTabChange = useCallback((_event: React.SyntheticEvent, newValue: number) => {
     // Navigate based on tab index using centralized route mapping
     // Fallback to FEATURES route if newValue is out of bounds
-    navigate(TAB_INDEX_TO_ROUTE[newValue as 0 | 1] ?? ROUTES.FEATURES);
+    const targetRoute = newValue >= 0 && newValue < TAB_INDEX_TO_ROUTE.length 
+      ? TAB_INDEX_TO_ROUTE[newValue]
+      : ROUTES.FEATURES;
+    navigate(targetRoute);
   }, [navigate]);
 
   const handleOpenBackupRestoreDialog = useCallback(() => {
@@ -290,9 +293,12 @@ function App() {
 
   // Determine current tab based on route using centralized mapping
   // Defaults to 0 (Features tab) for unknown routes
-  const currentTab = (location.pathname in ROUTE_TO_TAB_INDEX 
-    ? ROUTE_TO_TAB_INDEX[location.pathname as keyof typeof ROUTE_TO_TAB_INDEX]
-    : 0);
+  const getTabIndex = (pathname: string): number => {
+    return pathname in ROUTE_TO_TAB_INDEX 
+      ? ROUTE_TO_TAB_INDEX[pathname as keyof typeof ROUTE_TO_TAB_INDEX]
+      : 0;
+  };
+  const currentTab = getTabIndex(location.pathname);
 
   if (featuresLoading || repositoriesLoading) {
     return (
