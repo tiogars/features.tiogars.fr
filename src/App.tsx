@@ -30,6 +30,7 @@ import Footer from './components/Footer';
 import Header from './components/Header';
 import ConfirmDialog from './components/ConfirmDialog';
 import BackupRestoreDialog from './components/BackupRestoreDialog';
+import Dashboard from './components/Dashboard';
 import type { Feature, Repository } from './types/feature.types';
 import type { Application } from './types/feature.types';
 import type { FeatureFormData } from './components/FeatureForm/FeatureForm.types';
@@ -41,12 +42,13 @@ const REPOSITORY_URL = 'https://github.com/tiogars/features.tiogars.fr';
 
 // Route configuration for tab navigation
 const ROUTES = {
-  FEATURES: '/',
+  DASHBOARD: '/',
+  FEATURES: '/features',
   REPOSITORIES: '/repositories',
   APPS: '/apps',
 } as const;
 
-const TAB_INDEX_TO_ROUTE = [ROUTES.FEATURES, ROUTES.REPOSITORIES, ROUTES.APPS] as const;
+const TAB_INDEX_TO_ROUTE = [ROUTES.DASHBOARD, ROUTES.FEATURES, ROUTES.REPOSITORIES, ROUTES.APPS] as const;
 
 function App() {
   const navigate = useNavigate();
@@ -110,8 +112,8 @@ function App() {
               setSnackbarSeverity('success');
               setSnackbarOpen(true);
               
-              // Navigate to repository page to show the new repository
-              navigate(ROUTES.REPOSITORIES);
+              // Navigate to dashboard to show the update
+              navigate(ROUTES.DASHBOARD);
             } catch (error) {
               console.error('Error adding repository:', error);
               setSnackbarMessage('Failed to add repository');
@@ -123,8 +125,8 @@ function App() {
             setSnackbarSeverity('info');
             setSnackbarOpen(true);
             
-            // Navigate to repository page to show existing repositories
-            navigate(ROUTES.REPOSITORIES);
+            // Navigate to dashboard
+            navigate(ROUTES.DASHBOARD);
           }
         } else {
           // Not a GitHub URL or invalid format
@@ -348,11 +350,12 @@ function App() {
   }, []);
 
   // Determine current tab based on route using centralized mapping
-  // Defaults to 0 (Features tab) for unknown routes
+  // Defaults to 0 (Dashboard tab) for unknown routes
   const getTabIndex = (pathname: string): number => {
-    if (pathname === ROUTES.FEATURES) return 0;
-    if (pathname === ROUTES.REPOSITORIES) return 1;
-    if (pathname === ROUTES.APPS) return 2;
+    if (pathname === ROUTES.DASHBOARD) return 0;
+    if (pathname === ROUTES.FEATURES) return 1;
+    if (pathname === ROUTES.REPOSITORIES) return 2;
+    if (pathname === ROUTES.APPS) return 3;
     return 0;
   };
   const currentTab = getTabIndex(location.pathname);
@@ -381,6 +384,7 @@ function App() {
             indicatorColor="secondary"
             sx={{ backgroundColor: 'primary.dark' }}
           >
+            <Tab label="Dashboard" />
             <Tab label="Features" />
             <Tab label="Repository Management" />
             <Tab label="Apps Management" />
@@ -389,6 +393,24 @@ function App() {
 
         <Container maxWidth="lg" sx={{ py: 4, flex: 1 }}>
           <Routes>
+            <Route path={ROUTES.DASHBOARD} element={
+              <Dashboard
+                features={features}
+                repositories={repositories}
+                apps={apps}
+                tags={tags}
+                onCreateFeature={handleOpenForm}
+                onCreateRepository={handleOpenRepositoryForm}
+                onCreateApp={handleOpenAppForm}
+                onEditFeature={handleEditFeature}
+                onEditRepository={handleEditRepository}
+                onEditApp={handleEditApp}
+                onDeleteFeature={handleDeleteFeature}
+                onDeleteRepository={handleDeleteRepository}
+                onDeleteApp={handleDeleteApp}
+                onCreateIssue={handleCreateIssue}
+              />
+            } />
             <Route path={ROUTES.FEATURES} element={
               <FeatureList
                 features={features}
@@ -440,7 +462,7 @@ function App() {
 
         <Footer repositoryUrl={REPOSITORY_URL} />
 
-        {currentTab === 0 && <SpeedDialActions onAddFeature={handleOpenForm} onBackupRestore={handleOpenBackupRestoreDialog} />}
+        {currentTab === 1 && <SpeedDialActions onAddFeature={handleOpenForm} onBackupRestore={handleOpenBackupRestoreDialog} />}
 
         <FeatureForm
           open={formOpen}
