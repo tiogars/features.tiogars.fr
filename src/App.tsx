@@ -34,6 +34,19 @@ import { parseGitHubUrl, findExistingRepository } from './utils/github';
 
 const REPOSITORY_URL = 'https://github.com/tiogars/features.tiogars.fr';
 
+// Route configuration for tab navigation
+const ROUTES = {
+  FEATURES: '/',
+  REPOSITORIES: '/repositories',
+} as const;
+
+const ROUTE_TO_TAB_INDEX = {
+  [ROUTES.FEATURES]: 0,
+  [ROUTES.REPOSITORIES]: 1,
+} as const;
+
+const TAB_INDEX_TO_ROUTE = [ROUTES.FEATURES, ROUTES.REPOSITORIES] as const;
+
 function App() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -92,7 +105,7 @@ function App() {
               setSnackbarOpen(true);
               
               // Navigate to repository page to show the new repository
-              navigate('/repositories');
+              navigate(ROUTES.REPOSITORIES);
             } catch (error) {
               console.error('Error adding repository:', error);
               setSnackbarMessage('Failed to add repository');
@@ -105,7 +118,7 @@ function App() {
             setSnackbarOpen(true);
             
             // Navigate to repository page to show existing repositories
-            navigate('/repositories');
+            navigate(ROUTES.REPOSITORIES);
           }
         } else {
           // Not a GitHub URL or invalid format
@@ -258,8 +271,8 @@ function App() {
   }, [repositories, featureForIssue, handleCloseCreateIssueDialog]);
 
   const handleTabChange = useCallback((_event: React.SyntheticEvent, newValue: number) => {
-    // Navigate based on tab index
-    navigate(newValue === 0 ? '/' : '/repositories');
+    // Navigate based on tab index using centralized route mapping
+    navigate(TAB_INDEX_TO_ROUTE[newValue] || ROUTES.FEATURES);
   }, [navigate]);
 
   const handleOpenBackupRestoreDialog = useCallback(() => {
@@ -274,8 +287,8 @@ function App() {
     setSnackbarOpen(false);
   }, []);
 
-  // Determine current tab based on route
-  const currentTab = location.pathname === '/repositories' ? 1 : 0;
+  // Determine current tab based on route using centralized mapping
+  const currentTab = ROUTE_TO_TAB_INDEX[location.pathname as keyof typeof ROUTE_TO_TAB_INDEX] ?? 0;
 
   if (featuresLoading || repositoriesLoading) {
     return (
@@ -312,7 +325,7 @@ function App() {
 
         <Container maxWidth="lg" sx={{ py: 4, flex: 1 }}>
           <Routes>
-            <Route path="/" element={
+            <Route path={ROUTES.FEATURES} element={
               <FeatureList
                 features={features}
                 tags={tags}
@@ -323,7 +336,7 @@ function App() {
                 onTagFilterChange={setSelectedTags}
               />
             } />
-            <Route path="/repositories" element={
+            <Route path={ROUTES.REPOSITORIES} element={
               <Box>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
                   <Typography variant="h5">
