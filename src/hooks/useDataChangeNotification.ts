@@ -10,7 +10,6 @@ function saveDataChangeTimestamp(): void {
 interface UseDataChangeNotificationResult {
   showNotification: boolean;
   dismissNotification: () => void;
-  recordDataChange: () => void;
 }
 
 /**
@@ -42,7 +41,8 @@ export function useDataChangeNotification(
     previousTotalRef.current = currentTotal;
     
     if (hasDataIncreased) {
-      // Schedule the state update to avoid cascading renders
+      // Use setTimeout to avoid synchronous state update in effect
+      // This is a standard React pattern to defer state updates
       const timerId = setTimeout(() => {
         setShowNotification(true);
         saveDataChangeTimestamp();
@@ -56,13 +56,8 @@ export function useDataChangeNotification(
     setShowNotification(false);
   }, []);
 
-  const recordDataChange = useCallback(() => {
-    saveDataChangeTimestamp();
-  }, []);
-
   return {
     showNotification,
     dismissNotification,
-    recordDataChange,
   };
 }

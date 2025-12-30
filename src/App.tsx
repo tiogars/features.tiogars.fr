@@ -363,8 +363,9 @@ function App() {
       setSnackbarMessage('Backup downloaded successfully!');
       setSnackbarSeverity('success');
       setSnackbarOpen(true);
-    } catch {
-      setSnackbarMessage('Backup failed. Please try again.');
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
+      setSnackbarMessage(`Backup failed: ${errorMessage}. Please try again.`);
       setSnackbarSeverity('error');
       setSnackbarOpen(true);
     }
