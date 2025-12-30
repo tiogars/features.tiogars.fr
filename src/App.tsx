@@ -267,11 +267,13 @@ function App() {
       await updateApp(editingApp.id, {
         name: data.name,
         repositoryIds: data.repositoryIds,
+        links: data.links,
       });
     } else {
       await addApp({
         name: data.name,
         repositoryIds: data.repositoryIds,
+        links: data.links,
       });
     }
     handleCloseAppForm();

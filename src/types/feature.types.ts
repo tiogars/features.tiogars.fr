@@ -22,10 +22,21 @@ export interface Repository {
   updatedAt: number;
 }
 
+export interface Link {
+  id: string;
+  displayName: string;
+  description: string;
+  icon: string;
+  href: string;
+  target: '_blank' | '_self' | '_parent' | '_top';
+  environment: 'Production' | 'Test' | 'Development';
+}
+
 export interface Application {
   id: string;
   name: string;
   repositoryIds: string[];
+  links: Link[];
   createdAt: number;
   updatedAt: number;
 }
