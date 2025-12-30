@@ -44,18 +44,22 @@ const Dashboard = ({
     });
   };
 
+  // Helper function to get top N recently updated items
+  const getRecentItems = <T extends { updatedAt: number }>(items: T[], count: number = 3): T[] => {
+    return [...items].sort((a, b) => b.updatedAt - a.updatedAt).slice(0, count);
+  };
+
   // Get top 3 recently updated items for each entity
-  const recentFeatures = [...features]
-    .sort((a, b) => b.updatedAt - a.updatedAt)
-    .slice(0, 3);
+  const recentFeatures = getRecentItems(features);
+  const recentApps = getRecentItems(apps);
+  const recentRepositories = getRecentItems(repositories);
 
-  const recentApps = [...apps]
-    .sort((a, b) => b.updatedAt - a.updatedAt)
-    .slice(0, 3);
-
-  const recentRepositories = [...repositories]
-    .sort((a, b) => b.updatedAt - a.updatedAt)
-    .slice(0, 3);
+  // Shared grid layout for cards
+  const cardGridStyles = {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+    gap: 2,
+  };
 
   return (
     <Box>
@@ -179,11 +183,7 @@ const Dashboard = ({
             Recent Features
           </Typography>
           <Divider sx={{ mb: 2 }} />
-          <Box sx={{ 
-            display: 'grid', 
-            gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-            gap: 2
-          }}>
+          <Box sx={cardGridStyles}>
             {recentFeatures.map((feature) => (
               <FeatureCard
                 key={feature.id}
@@ -205,11 +205,7 @@ const Dashboard = ({
             Recent Apps
           </Typography>
           <Divider sx={{ mb: 2 }} />
-          <Box sx={{ 
-            display: 'grid', 
-            gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-            gap: 2
-          }}>
+          <Box sx={cardGridStyles}>
             {recentApps.map((app) => (
               <AppCard
                 key={app.id}
@@ -230,11 +226,7 @@ const Dashboard = ({
             Recent Repositories
           </Typography>
           <Divider sx={{ mb: 2 }} />
-          <Box sx={{ 
-            display: 'grid', 
-            gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-            gap: 2
-          }}>
+          <Box sx={cardGridStyles}>
             {recentRepositories.map((repo) => (
               <Card key={repo.id}>
                 <CardContent>

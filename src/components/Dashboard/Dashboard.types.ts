@@ -9,10 +9,8 @@ export interface DashboardProps {
   onCreateRepository: () => void;
   onCreateApp: () => void;
   onEditFeature: (feature: Feature) => void;
-  onEditRepository: (repository: Repository) => void;
   onEditApp: (app: Application) => void;
   onDeleteFeature: (id: string) => void;
-  onDeleteRepository: (id: string) => void;
   onDeleteApp: (id: string) => void;
   onCreateIssue: (feature: Feature) => void;
 }

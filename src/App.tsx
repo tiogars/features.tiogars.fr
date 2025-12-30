@@ -403,10 +403,8 @@ function App() {
                 onCreateRepository={handleOpenRepositoryForm}
                 onCreateApp={handleOpenAppForm}
                 onEditFeature={handleEditFeature}
-                onEditRepository={handleEditRepository}
                 onEditApp={handleEditApp}
                 onDeleteFeature={handleDeleteFeature}
-                onDeleteRepository={handleDeleteRepository}
                 onDeleteApp={handleDeleteApp}
                 onCreateIssue={handleCreateIssue}
               />
