@@ -55,3 +55,38 @@ pnpm preview
 ## Deployment
 
 The site is automatically deployed to GitHub Pages when changes are pushed to the `main` branch via GitHub Actions.
+
+## Powered by
+
+This project leverages a modern technology stack organized by responsibility:
+
+```mermaid
+mindmap
+  root((Features Manager))
+    Frontend
+      React
+      TypeScript
+    UI & Styling
+      Material-UI
+      Emotion
+    Routing & Navigation
+      React Router
+    Forms
+      React Hook Form
+    PWA & Offline
+      vite-plugin-pwa
+      Workbox
+      Service Workers
+    Data Storage
+      IndexedDB
+      idb library
+    Build & Development
+      Vite
+      pnpm
+    Code Quality
+      ESLint
+      TypeScript Compiler
+    Deployment & CI/CD
+      GitHub Pages
+      GitHub Actions
+```
